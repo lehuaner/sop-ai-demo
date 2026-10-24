@@ -9,8 +9,7 @@ archive/*
 !archive/ARCHIVE_LOG.md
 
 # 数据集与模型权重
-datasets/raw/
-datasets/converted/
+datasets/
 *.pt
 *.onnx
 *.engine
