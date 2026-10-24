@@ -20,10 +20,10 @@ if errorlevel 1 (
 )
 
 echo [1/5] Freeing port %BACKEND_PORT% (backend) ...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Write-Host ('  stopping PID ' + $_); Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Write-Host ('  stopping PID ' + $_); Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"
 
 echo [2/5] Freeing port %FRONTEND_PORT% (frontend) ...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort %FRONTEND_PORT% -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Write-Host ('  stopping PID ' + $_); Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort %FRONTEND_PORT% -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Write-Host ('  stopping PID ' + $_); Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"
 
 echo [3/5] Checking python venv ...
 if not exist "%ROOT%\.venv\Scripts\python.exe" (
