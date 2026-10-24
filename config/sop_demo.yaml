@@ -1,0 +1,38 @@
+# SOP demo configuration (docs/01 section 5.3)
+# Rules operate on COCO 17 person keypoints (9=right wrist, 10=left wrist)
+# in normalized ROI rectangles. v1 shows this file content on the workstation
+# UI; missing/wrong-part checks belong to phase 2.
+
+sop_id: demo_assembly_01
+product: COCO val2017 pipeline demo (M1)
+
+steps:
+  - id: 1
+    name: both hands into work area
+    description: operator brings both wrists into the work area
+    expect:
+      rule: hands_in_roi
+      roi: work_area
+      stable_frames: 20
+  - id: 2
+    name: right hand to object tray
+    description: right wrist reaches the object tray
+    expect:
+      rule: hand_near_object
+      roi: object_tray
+      stable_frames: 20
+  - id: 3
+    name: both hands back to work area
+    description: assembly gesture inside work area
+    expect:
+      rule: hands_in_roi
+      roi: work_area
+      stable_frames: 20
+
+alarm:
+  step_timeout_sec: 30        # demo-friendly; production uses takt time
+  out_of_order: warn
+
+roi:
+  work_area:  { x1: 0.30, y1: 0.30, x2: 0.70, y2: 0.85 }
+  object_tray: { x1: 0.05, y1: 0.45, x2: 0.25, y2: 0.95 }

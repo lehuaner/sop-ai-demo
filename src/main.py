@@ -1,15 +1,16 @@
 """SOP-AI demo main entry (docs/01 section 4): train / run modes.
 
   python src/main.py train  [--epochs N] [--data PATH] [--model PATH]
-  python src/main.py run    --video PATH [--weights PATH]
+  python src/main.py run    --video PATH [--weights PATH] [--sop PATH]
 
-All runs are archived under runs/<timestamp>-<task>/ (docs/01 section 6).
+All runs are archived under runs/<timestamp>-<task>/ (docs/01 section 6):
+README.md (human summary) + manifest.json + log.txt + artifacts.
 """
 import argparse
 import csv
 import glob
+import json
 import os
-import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,10 +19,11 @@ from src.runctx import RunContext  # noqa: E402
 
 DEFAULT_DATA = os.path.join(ROOT, "datasets/converted/sop_pose/sop_pose.yaml")
 DEFAULT_MODEL = os.path.join(ROOT, "weights/yolo11n-pose.pt")
+DEFAULT_SOP = os.path.join(ROOT, "config/sop_demo.yaml")
 
 
 def find_weight(name):
-    """Locate newest trained weight: runs/*/weights/best.pt preferred."""
+    """Newest trained weight across runs/ (runs/<name>/weights/best.pt)."""
     cands = sorted(glob.glob(os.path.join(ROOT, "runs", "*", "weights", name)))
     return cands[-1] if cands else None
 
@@ -54,7 +56,7 @@ def cmd_train(args):
                         if k.endswith(key):
                             ctx.note(f"{key} = {float(v):.4f}")
         ctx.note("训练完成，best 权重: runs/" + ctx.name + "/weights/best.pt")
-        ctx.note("结果曲线: results.png | 混淆: 无(姿态任务) | 逐轮指标: results.csv")
+        ctx.note("结果曲线 results.png | 逐轮指标 results.csv（大屏 /api/train_metrics 可读）")
         ctx.finish(ok=True, extra_manifest={"final_metrics": last})
     except Exception as e:
         import traceback
@@ -66,10 +68,18 @@ def cmd_train(args):
 
 def cmd_run(args):
     import cv2
+    import numpy as np
     from ultralytics import YOLO
 
+    from src.sop import SOPEngine
+
     weights = args.weights or find_weight("best.pt") or DEFAULT_MODEL
-    ctx = RunContext("run", params={"video": args.video, "weights": os.path.relpath(weights, ROOT)})
+    sop_path = args.sop or DEFAULT_SOP
+    engine = SOPEngine(sop_path)
+    ctx = RunContext("run", params={
+        "video": args.video, "weights": os.path.relpath(weights, ROOT),
+        "sop": os.path.relpath(sop_path, ROOT),
+    })
     try:
         y = YOLO(weights)
         cap = cv2.VideoCapture(args.video)
@@ -78,41 +88,55 @@ def cmd_run(args):
         fps = cap.get(cv2.CAP_PROP_FPS) or 30
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        os.makedirs(os.path.join(ctx.path, "samples"), exist_ok=True)
         out_mp4 = os.path.join(ctx.path, "samples", "annotated.mp4")
-        os.makedirs(os.path.dirname(out_mp4), exist_ok=True)
         vw = cv2.VideoWriter(out_mp4, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-        events_path = os.path.join(ctx.path, "events.jsonl")
-        ev = open(events_path, "w", encoding="utf-8")
-        fid, t0 = 0, cv2.getTickCount()
+        ev = open(os.path.join(ctx.path, "events.jsonl"), "w", encoding="utf-8")
+        fid, n_person, n_ev, t0 = 0, 0, 0, cv2.getTickCount()
         while True:
             ok, frame = cap.read()
             if not ok:
                 break
+            if args.max_seconds and fid >= int(fps * args.max_seconds):
+                break
             res = y.predict(frame, verbose=False, device=0)[0]
-            plot = res.plot()
+            kpts_px = None
+            if res.keypoints is not None and len(res.keypoints) > 0:
+                i = int(res.boxes.conf.argmax())
+                kpts_px = res.keypoints.xy[i].cpu().numpy().astype(float)
+                n_person = max(n_person, len(res.keypoints))
+            events = engine.update(kpts_px, fid)
+            for e in events:
+                ev.write(json.dumps(e, ensure_ascii=False) + "\n")
+                n_ev += 1
+                print(f"[alarm] {e['type']} step={e.get('step')} {e.get('message', '')}")
+                if e["type"] in ("step_timeout", "out_of_order"):
+                    try:
+                        import winsound
+                        winsound.Beep(1200, 350)
+                    except Exception:
+                        pass
+            plot = engine.draw_overlay(res.plot(), fid)
+            vw.write(plot)
             fid += 1
             if fid % int(fps) == 0:
                 now = cv2.getTickCount()
                 fps_now = fid / ((now - t0) / cv2.getTickFrequency())
-                ev.write(json.dumps({"frame": fid, "fps": round(fps_now, 1),
-                                     "persons": len(res.keypoints)}) + "\n")
-                print(f"frame {fid} | {fps_now:.1f} fps | persons {len(res.keypoints)}")
-            vw.write(plot)
+                print(f"frame {fid} | {fps_now:.1f} fps | persons {len(res.keypoints) if res.keypoints is not None else 0}")
         cap.release()
         vw.release()
         ev.close()
-        ctx.note(f"回放推理完成：{fid} 帧，输出视频 samples/annotated.mp4，事件 events.jsonl")
-        ctx.note("当前为 M2 起步版：仅姿态叠加；SOP 规则引擎/报警随后接入")
-        ctx.finish(ok=True)
+        ctx.note(f"回放推理完成：{fid} 帧，画面中出现最多 {n_person} 人，触发事件 {n_ev} 条")
+        ctx.note(f"SOP 步骤推进到：{engine.current}/{len(engine.steps)}")
+        ctx.note(f"输出：samples/annotated.mp4 + events.jsonl（大屏 events 面板读取）")
+        ctx.finish(ok=True, extra_manifest={"frames": fid, "events": n_ev,
+                                            "sop_step_reached": engine.current})
     except Exception as e:
         import traceback
         traceback.print_exc()
         ctx.note("异常: " + repr(e))
         ctx.finish(ok=False)
         sys.exit(1)
-
-
-import json  # noqa: E402
 
 
 def main():
@@ -129,6 +153,8 @@ def main():
     r = sub.add_parser("run")
     r.add_argument("--video", required=True)
     r.add_argument("--weights", default=None)
+    r.add_argument("--sop", default=None)
+    r.add_argument("--max-seconds", type=float, default=0, help="0 = full video")
     args = ap.parse_args()
     if args.cmd == "train":
         cmd_train(args)
