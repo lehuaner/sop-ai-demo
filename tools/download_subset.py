@@ -55,24 +55,34 @@ def human(n):
         n /= 1024.0
 
 
-def download_file(url, dest, token=None, ctx=None):
+def download_file(url, dest, token=None, ctx=None, attempts=3):
+    import time
     os.makedirs(os.path.dirname(os.path.abspath(dest)), exist_ok=True)
     part = dest + ".part"
-    headers = dict(UA)
-    if token:
-        headers["Authorization"] = "Bearer " + token
-    done = os.path.getsize(part) if os.path.exists(part) else 0
-    if done:
-        headers["Range"] = f"bytes={done}-"
-    with requests.get(url, headers=headers, stream=True, timeout=60, allow_redirects=True) as r:
-        if r.status_code not in (200, 206):
-            raise RuntimeError(f"HTTP {r.status_code} for {url}")
-        mode = "ab" if r.status_code == 206 else "wb"
-        with open(part, mode) as f:
-            for chunk in r.iter_content(chunk_size=1 << 20):
-                f.write(chunk)
-    os.replace(part, dest)
-    return os.path.getsize(dest)
+    for attempt in range(attempts):
+        headers = dict(UA)
+        if token:
+            headers["Authorization"] = "Bearer " + token
+        done = os.path.getsize(part) if os.path.exists(part) else 0
+        if done:
+            headers["Range"] = f"bytes={done}-"
+        try:
+            with requests.get(url, headers=headers, stream=True, timeout=(30, 180),
+                              allow_redirects=True) as r:
+                if r.status_code not in (200, 206):
+                    raise RuntimeError(f"HTTP {r.status_code} for {url}")
+                mode = "ab" if r.status_code == 206 else "wb"
+                with open(part, mode) as f:
+                    for chunk in r.iter_content(chunk_size=1 << 20):
+                        f.write(chunk)
+            os.replace(part, dest)
+            return os.path.getsize(dest)
+        except requests.RequestException as e:
+            if attempt == attempts - 1:
+                raise
+            print(f"  retry {attempt + 1}/{attempts - 1} after: {type(e).__name__}")
+            time.sleep(3)
+    raise RuntimeError("unreachable")
 
 
 def plan_and_check(items, cap_bytes, dry, ctx=None):

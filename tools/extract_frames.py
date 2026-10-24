@@ -22,7 +22,7 @@ import sys  # noqa: E402
 sys.path.insert(0, sys_path)
 from src.runctx import RunContext  # noqa: E402
 
-ROOT = os.path.dirname(sys_path)
+ROOT = os.path.abspath(sys_path)
 
 
 def blur_score(img):

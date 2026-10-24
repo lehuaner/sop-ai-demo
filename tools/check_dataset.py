@@ -3,6 +3,7 @@
 Archived via src/runctx.py (task=check). Outputs to the run dir:
 stats.json + samples/*.jpg (12 random train images with boxes/keypoints).
 """
+import argparse
 import glob
 import json
 import os
@@ -18,7 +19,7 @@ import sys  # noqa: E402
 sys.path.insert(0, sys_path)
 from src.runctx import RunContext  # noqa: E402
 
-ROOT = os.path.dirname(sys_path)
+ROOT = os.path.abspath(sys_path)
 
 # COCO 17-kpt skeleton pairs for drawing (ignored for other kpt counts)
 SKELETON = [(0, 1), (0, 2), (1, 3), (2, 4), (0, 5), (0, 6), (5, 7), (7, 9),
@@ -92,7 +93,7 @@ def main():
                 cv2.rectangle(img, p1, (int(cx + bw / 2), int(cy + bh / 2)), (0, 255, 0), 2)
                 nk = (len(o) - 5) // 3
                 for j in range(nk):
-                    x, y, v = o[5 + 3 * j] * w, o[6 + 3 * j] * h, o[8 + 3 * j]
+                    x, y, v = o[5 + 3 * j] * w, o[6 + 3 * j] * h, o[7 + 3 * j]
                     if v > 0:
                         cv2.circle(img, (int(x), int(y)), 3, (0, 0, 255), -1)
                 if nk == 17:
