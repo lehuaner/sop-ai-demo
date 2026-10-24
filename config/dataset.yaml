@@ -1,0 +1,43 @@
+# 数据集配置（docs/02-数据集方案.md）
+# active_source 切换数据源：M1 流程验证用 coco_val2017；M2 手部模型切 assembly101
+# （assembly101 为 gated 数据集，需 export HF_TOKEN=<在 HF 网站点击授权后的读 token>）
+
+active_source: coco_val2017
+
+max_download_gb: 5
+train_ratio: 0.8
+seed: 42
+
+sources:
+  coco_val2017:
+    kind: coco_keypoints
+    num_keypoints: 17
+    min_kpts_per_person: 6      # 过滤严重遮挡的人
+    background_ratio: 0.10      # 额外保留的负样本图比例
+    download:
+      - url: http://images.cocodataset.org/zips/val2017.zip
+        dest: datasets/raw/coco/val2017.zip
+      - url: http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+        dest: datasets/raw/coco/annotations_trainval2017.zip
+    keypoint_json: datasets/raw/coco/annotations/annotations/person_keypoints_val2017.json
+    images_root: datasets/raw/coco/val2017
+
+  assembly101:
+    kind: assembly101_poses
+    api: https://hf-mirror.com/api/datasets/cvml-nus/assembly101/tree/main
+    resolve: https://hf-mirror.com/datasets/cvml-nus/assembly101/resolve/main
+    token_env: HF_TOKEN
+    takes:
+      - nusar-2021_action_both_9011-a01_9011_user_id_2021-02-01_153724
+    views: [v1]                  # v1 = C10095_rgb.mp4（第三人称固定视角）
+    view_map:
+      v1: C10095_rgb.mp4
+      v2: C10115_rgb.mp4
+      v3: C10118_rgb.mp4
+      v4: C10119_rgb.mp4
+      v5: C10379_rgb.mp4
+      v6: C10390_rgb.mp4
+      v7: C10395_rgb.mp4
+      v8: C10404_rgb.mp4
+    fps_extract: 5
+    num_keypoints: 42            # 右手 21 + 左手 21
