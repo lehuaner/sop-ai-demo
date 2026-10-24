@@ -18,6 +18,10 @@ datasets/converted/
 # 对外导出副本
 exports/
 
+# 前端
+web/node_modules/
+web/dist/
+
 # IDE / 系统文件
 .idea/
 .vscode/

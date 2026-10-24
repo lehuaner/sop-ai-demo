@@ -1,0 +1,9 @@
+# Install CUDA-enabled PyTorch FIRST (RTX 3050, see docs/01 section 7):
+#   python -m pip install torch --index-url https://download.pytorch.org/whl/cu121
+fastapi
+uvicorn[standard]
+pyyaml
+opencv-python
+pandas
+matplotlib
+ultralytics
