@@ -1,0 +1,24 @@
+# 环境与运行产物（大文件一律不入库，规则见 docs/00-文档制作规范.md §4–§5）
+.venv/
+__pycache__/
+*.py[cod]
+
+# 运行产物与归档数据本体（归档动作通过 archive/ARCHIVE_LOG.md 提交留痕）
+runs/
+archive/*
+!archive/ARCHIVE_LOG.md
+
+# 数据集与模型权重
+datasets/raw/
+datasets/converted/
+*.pt
+*.onnx
+*.engine
+
+# 对外导出副本
+exports/
+
+# IDE / 系统文件
+.idea/
+.vscode/
+Thumbs.db
