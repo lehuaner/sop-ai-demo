@@ -180,7 +180,7 @@ def main():
         ctx.note("异常: " + repr(e))
         ctx.finish(ok=False)
         sys.exit(1)
-    ctx.finish(ok=ok)
+    ctx.finish(ok=True if dry else ok)
     sys.exit(0 if ok or dry else 1)
 
 
