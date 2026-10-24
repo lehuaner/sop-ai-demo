@@ -7,6 +7,7 @@ active_source: coco_val2017
 max_download_gb: 5
 train_ratio: 0.8
 seed: 42
+converted_dir: datasets/converted/sop_pose
 
 sources:
   coco_val2017:
@@ -15,11 +16,12 @@ sources:
     min_kpts_per_person: 6      # 过滤严重遮挡的人
     background_ratio: 0.10      # 额外保留的负样本图比例
     download:
-      - url: http://images.cocodataset.org/zips/val2017.zip
+      # 国内源（ModelScope PAI/COCO2017 镜像）；images.cocodataset.org 国际源单流仅 ~0.36MB/s，弃用
+      - url: https://modelscope.cn/api/v1/datasets/PAI/COCO2017/repo?Revision=master&FilePath=val2017.zip
         dest: datasets/raw/coco/val2017.zip
-      - url: http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+      - url: https://modelscope.cn/api/v1/datasets/PAI/COCO2017/repo?Revision=master&FilePath=annotations_trainval2017.zip
         dest: datasets/raw/coco/annotations_trainval2017.zip
-    keypoint_json: datasets/raw/coco/annotations/annotations/person_keypoints_val2017.json
+    keypoint_json: datasets/raw/coco/annotations/person_keypoints_val2017.json
     images_root: datasets/raw/coco/val2017
 
   assembly101:
