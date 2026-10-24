@@ -48,6 +48,9 @@
 | 10 | 工作站/大屏 UI | **Vue 3**（Vite 构建，大屏用 ECharts），后端 FastAPI 提供接口与推理帧流 | 用户 2026-10-25 |
 | 11 | 主数据集 | **Assembly101 子集**，严禁全量下载，只下选定装配任务的子集 | 用户 2026-10-25 |
 | 12 | 辅助数据集 | 暂不做（相关章节已删除） | 用户 2026-10-25 |
+| 13 | v1 关键点路线 | **C 组合**：先人体 17 关键点预训练直推跑通闭环，M2 后半用 Assembly101 手部标注专训 21 关节精化模型 | 用户 2026-10-25 |
+| 14 | git 远程 | 公开仓库（GitHub） | 用户 2026-10-25 |
+| 15 | 验收基线 | mAP@50 ≥ 0.70、Runtime ≥ 15 fps（未提异议，默认认可） | 用户 2026-10-25 |
 
 ## 4. 系统架构（单机）
 
@@ -144,6 +147,10 @@ pip install -r requirements.txt
 
 `requirements.txt`：`ultralytics`、`torch`（CUDA 版，按 3050 装 cu121 官方轮子）、`opencv-python`、`fastapi`、`uvicorn`、`pyyaml`、`pandas`、`matplotlib`。
 
+CUDA 版 torch 须先于 requirements 安装：`python -m pip install torch --index-url https://download.pytorch.org/whl/cu121`。
+
+**一键启动**：双击根目录 `start_dev.bat`（纯 ASCII，防编码错误）：自动停掉占用 8000/5173 端口的进程 → 首次运行自动创建 `.venv` 并装依赖、`npm install` → 分窗口启动后端 `uvicorn src.api:app`（:8000）与前端 Vite（:5173）。后端 API 入口 `src/api.py`，训练/推理 CLI 入口 `src/main.py`，前端在 `web/`（M2 落地）。
+
 ## 8. 里程碑
 
 | 阶段 | 内容 | 退出条件 |
@@ -165,8 +172,4 @@ pip install -r requirements.txt
 
 ## 10. 待定项
 
-| # | 事项 | 推荐 | 责任 |
-|---|---|---|---|
-| 1 | v1 关键点路线：A) 人体 17 关键点预训练直推先行，B) 手部 21 关节专训一步到位，C) 组合——先 A 跑通闭环，M2 再用 Assembly101 手部标注专训 21 关节精化模型 | **C**：既不阻塞进度，又贴合「重点手部动作」 | 用户 |
-| 2 | 是否配置 git 远程仓库（GitHub/Gitee；公开/私有） | demo 阶段可先纯本地 | 用户 |
-| 3 | 验收基线确认：关键点 mAP@50 ≥ 0.70、Runtime ≥ 15 fps（见 02 §5） | 认可默认值即可 | 用户 |
+当前无待定项：v1 关键点路线（C 组合）、git 远程（公开仓库）、验收基线均已确认，见 §3 决策表第 13–15 条。
