@@ -99,7 +99,7 @@ def cmd_run(args):
                 break
             if args.max_seconds and fid >= int(fps * args.max_seconds):
                 break
-            res = y.predict(frame, verbose=False, device=0)[0]
+            res = y.predict(frame, verbose=False, device=args.device)[0]
             kpts_px = None
             if res.keypoints is not None and len(res.keypoints) > 0:
                 i = int(res.boxes.conf.argmax())
@@ -154,6 +154,7 @@ def main():
     r.add_argument("--video", required=True)
     r.add_argument("--weights", default=None)
     r.add_argument("--sop", default=None)
+    r.add_argument("--device", default="0", help="0 = GPU, cpu = CPU smoke test")
     r.add_argument("--max-seconds", type=float, default=0, help="0 = full video")
     args = ap.parse_args()
     if args.cmd == "train":
