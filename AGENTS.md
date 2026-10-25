@@ -19,7 +19,9 @@
   **归档动作 = 一次 `archive:` 提交**；大文件（数据/权重/运行产物）不入库；
 - 环境隔离：依赖一律装项目内 `.venv`；`.bat` 脚本纯 ASCII；
 - 网络：优先国内可达源（ModelScope / hf-mirror / 阿里云 / 清华源）；
-  被墙资源（GitHub 直连、HF gated、Google Drive）需代理，用完环境变量即弃，不写入全局配置。
+  被墙资源（GitHub 直连、HF gated、Google Drive）走本机代理 `127.0.0.1:7897`（env `http_proxy/https_proxy`）；
+  **git 推送必须用 `git -c http.sslBackend=openssl -c http.proxy=http://127.0.0.1:7897 push`**（schannel 后端经代理握手会失败）；
+  HF gated 数据集 token 在 `.venv/hf_token.txt`（不入库），代理用完即弃，不写入全局配置。
 
 ## 3. 偏差记录制度（重要）
 
