@@ -1,9 +1,10 @@
 @echo off
 setlocal
+title SOP-AI demo launcher
 REM ============================================================
 REM  SOP-AI demo - one-click dev launcher (ASCII only, no UTF-8)
+REM  Double-click to run. FIRST RUN installs deps (10+ min).
 REM  - Frees backend/frontend ports automatically
-REM  - Bootstraps .venv and npm deps on first run
 REM  - Backend : uvicorn src.api:app   (default port 8000)
 REM  - Frontend: vite dev server       (default port 5173)
 REM ============================================================
@@ -13,10 +14,16 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 set "BACKEND_PORT=8000"
 set "FRONTEND_PORT=5173"
 
+set "PY=python"
 where python >nul 2>nul
 if errorlevel 1 (
-    echo [ERROR] Python not found in PATH.
-    exit /b 1
+    where py >nul 2>nul
+    if errorlevel 1 (
+        echo [ERROR] Python not found in PATH. Install Python 3.10+ first.
+        pause
+        exit /b 1
+    )
+    set "PY=py -3"
 )
 
 echo [1/5] Freeing port %BACKEND_PORT% (backend) ...
@@ -27,8 +34,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -Lo
 
 echo [3/5] Checking python venv ...
 if not exist "%ROOT%\.venv\Scripts\python.exe" (
-    echo   Creating .venv and installing requirements, please wait ...
-    python -m venv "%ROOT%\.venv"
+    echo   Creating .venv and installing requirements. FIRST RUN TAKES 10+ MINUTES, please wait ...
+    %PY% -m venv "%ROOT%\.venv"
     "%ROOT%\.venv\Scripts\python.exe" -m pip install --upgrade pip
     "%ROOT%\.venv\Scripts\python.exe" -m pip install -r "%ROOT%\requirements.txt"
 ) else (
@@ -37,7 +44,7 @@ if not exist "%ROOT%\.venv\Scripts\python.exe" (
 
 echo [4/5] Checking frontend deps ...
 if not exist "%ROOT%\web\package.json" (
-    echo   SKIP: web\ frontend not scaffolded yet (planned at M2, see docs/01).
+    echo   SKIP: web\ frontend not scaffolded yet - planned at M2, see docs/01.
 ) else if not exist "%ROOT%\web\node_modules" (
     echo   Installing npm dependencies, please wait ...
     pushd "%ROOT%\web"
@@ -63,6 +70,8 @@ if exist "%ROOT%\web\package.json" (
 
 echo.
 echo Backend API  : http://127.0.0.1:%BACKEND_PORT%/docs
-echo Frontend dev : http://localhost:%FRONTEND_PORT%   (after web\ is scaffolded)
-echo Close the two opened windows to stop the services.
+echo Frontend dev : http://localhost:%FRONTEND_PORT%
+echo Services run in the two windows just opened. Close them to stop.
+echo This launcher window can be closed now.
+pause
 endlocal
