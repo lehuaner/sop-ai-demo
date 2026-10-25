@@ -1,0 +1,12 @@
+# agents.log — 执行偏差记录
+# 格式见 AGENTS.md §3。只追加，不删改历史条目。
+
+[2026-10-25 01:05] 偏差：M1 训练与演示数据使用了 COCO val2017（人体 17 关键点），而 docs/02 已定数据源为 Assembly101 子集
+  原因：Assembly101 在 HuggingFace 为 gated 数据集（匿名 401），官方 Google Drive 需申请且当时无代理——两条路都被网络与授权挡死；为按 C 路线跑通训推闭环，以 COCO 人体关键点先行验证全流程
+  涉及文件：config/dataset.yaml, tools/download_subset.py, tools/extract_frames.py, tools/convert_to_yolo_pose.py, tools/make_demo_video.py, runs/20261025-*（各次运行归档）
+  后续：代理已开启，重新走 Assembly101 系数据源重建演示视频与手部关键点模型；config/dataset.yaml 保留 coco_val2017 作为流程冒烟源
+
+[2026-10-25 12:05] 规则更新：AGENTS.md §3 升级为「先询问 → 用户同意 → 再切换路径 → 记录 agents.log」
+  原因：用户要求阻碍时先沟通再决策，未经同意不得自行改道
+  涉及文件：AGENTS.md, agents.log
+  后续：长期有效。当前阻塞项：等待用户提供 HuggingFace read token（Assembly101 gated 数据集授权），拿到后即按 docs/02 原定路径执行，无需切路
