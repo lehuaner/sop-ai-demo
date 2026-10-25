@@ -40,10 +40,10 @@ def ensure_model():
 
 
 def build_detector(model_path):
-    import mediapipe as mp
+    from mediapipe.tasks.python.core.base_options import BaseOptions
     from mediapipe.tasks.python import vision
     opts = vision.HandLandmarkerOptions(
-        base_options=mp.tasks.python.BaseOptions(model_asset_path=model_path),
+        base_options=BaseOptions(model_asset_path=model_path),
         running_mode=vision.RunningMode.IMAGE,
         num_hands=2,
     )
@@ -60,7 +60,7 @@ def detect_frame(detector, bgr):
         # MediaPipe assumes mirrored (selfie) input; our third-person video is
         # NOT mirrored -> swap: reported 'Left' == actual right hand
         cls = 0 if cat == "Left" else 1
-        pts = [(l.x, l.y, 2 if (l.visibility or 0) >= 0.5 else 1) for l in lms]
+        pts = [(l.x, l.y, 2 if (getattr(l, "visibility", 0) or 0) >= 0.5 else 1) for l in lms]
         xs = [p[0] for p in pts]
         ys = [p[1] for p in pts]
         out.append((cls, xs, ys, pts))
