@@ -58,3 +58,18 @@ sources:
       v8: C10404_rgb.mp4
     fps_extract: 5
     num_keypoints: 42            # 右手 21 + 左手 21
+
+# 阶段识别（决策 #17，docs/02 §7）
+stage_map:
+  idle: [inspect, demonstrate]
+  assemble: [attach, screw, position, attempt to attach, attempt to screw]
+  disassemble: [detach, unscrew, remove, attempt to detach]
+coarse_label_map:
+  nusar-2021_action_both_9031-c10b_9031_user_id_2021-02-04_101221: assembly_nusar-2021_action_both_9031-c10b_9031_user_id_2021-02-04_101552
+  nusar-2021_action_both_9084-b04c_9084_user_id_2021-02-25_143221: disassembly_nusar-2021_action_both_9084-b04c_9084_user_id_2021-02-25_143221
+  nusar-2021_action_both_9036-c01c_9036_user_id_2021-02-18_092311: assembly_nusar-2021_action_both_9036-c01c_9036_user_id_2021-02-18_092539
+  nusar-2021_action_both_9023-c04b_9023_user_id_2021-02-23_144136: assembly_nusar-2021_action_both_9023-c04b_9023_user_id_2021-02-23_144136
+  nusar-2021_action_both_9046-b06b_9046_user_id_2021-02-22_105953: assembly_nusar-2021_action_both_9046-b06b_9046_user_id_2021-02-22_105953
+  nusar-2021_action_both_9085-c01d_9085_user_id_2021-02-22_172144: assembly_nusar-2021_action_both_9085-c01d_9085_user_id_2021-02-22_172144
+  nusar-2021_action_both_9084-b02b_9084_user_id_2021-02-25_141202: assembly_nusar-2021_action_both_9084-b02b_9084_user_id_2021-02-25_141202
+  nusar-2021_action_both_9031-b01b_9031_user_id_2021-02-23_160708: disassembly_nusar-2021_action_both_9031-b01b_9031_user_id_2021-02-23_160708

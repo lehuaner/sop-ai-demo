@@ -106,6 +106,7 @@ def main():
         import random
         rng = random.Random(cfg.get("seed", 42))
         split = {"train": [], "val": [], "test": []}
+        manifest = []  # (take, kept_index si, source_frame fi, labeled) - joins frames to 30fps action segments
         stats = {"labeled": 0, "negatives": 0, "hands": 0, "per_class": {0: 0, 1: 0}}
         detector = build_detector(ensure_model())
 
@@ -140,6 +141,7 @@ def main():
                                 stats["per_class"][cls] += 1
                         labeled = len(lines) > 0
                         take_imgs.append((name, labeled, frame, lines))
+                        manifest.append({"take": take, "si": si, "fi": fi, "labeled": labeled})
                         si += 1
                         if labeled:
                             stats["labeled"] += 1
@@ -166,6 +168,8 @@ def main():
             json.dump({"splits": split, "rule": "temporal 7/2/1 per take, contiguous",
                        "labeled": stats["labeled"], "negatives": stats["negatives"]},
                       f, ensure_ascii=False, indent=1)
+        with open(os.path.join(out_dir, "frames_manifest.json"), "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False)
         with open(os.path.join(out_dir, "sop_hands.yaml"), "w", encoding="utf-8") as f:
             f.write(f"path: {out_dir}\ntrain: images/train\nval: images/val\ntest: images/test\n"
                     "kpt_shape: [21, 3]\nnames:\n  0: right_hand\n  1: left_hand\n")
