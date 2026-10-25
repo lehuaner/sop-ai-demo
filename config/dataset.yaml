@@ -9,6 +9,13 @@ train_ratio: 0.8
 seed: 42
 converted_dir: datasets/converted/sop_pose
 
+# 路线D：手部模型预标注参数（docs/02 §1/§3）
+prelabel:
+  fps_extract: 10
+  margin: 0.25
+  neg_ratio: 0.10
+  min_labeled_frames: 3000
+
 sources:
   coco_val2017:
     kind: coco_keypoints
@@ -29,9 +36,16 @@ sources:
     api: https://huggingface.co/api/datasets/cvml-nus/assembly101/tree/main
     resolve: https://huggingface.co/datasets/cvml-nus/assembly101/resolve/main
     token_env: HF_TOKEN
+    with_poses: false            # 路线D：教师模型自产 2D 标签，官方 3D 姿态 JSON 不再下载
     takes:
-      - nusar-2021_action_both_9031-c10b_9031_user_id_2021-02-04_101221   # 0.18GB，体量最小
-      - nusar-2021_action_both_9084-b04c_9084_user_id_2021-02-25_143221   # 0.19GB
+      - nusar-2021_action_both_9031-c10b_9031_user_id_2021-02-04_101221   # 0.18GB（已下）
+      - nusar-2021_action_both_9084-b04c_9084_user_id_2021-02-25_143221   # 0.19GB（已下）
+      - nusar-2021_action_both_9036-c01c_9036_user_id_2021-02-18_092311   # 0.19GB
+      - nusar-2021_action_both_9023-c04b_9023_user_id_2021-02-23_144136   # 0.28GB
+      - nusar-2021_action_both_9046-b06b_9046_user_id_2021-02-22_105953   # 0.41GB
+      - nusar-2021_action_both_9085-c01d_9085_user_id_2021-02-22_172144   # 0.42GB
+      - nusar-2021_action_both_9084-b02b_9084_user_id_2021-02-25_141202   # 0.43GB
+      - nusar-2021_action_both_9031-b01b_9031_user_id_2021-02-23_160708   # 0.46GB
     views: [v1]                  # v1 = C10095_rgb.mp4（第三人称固定视角）
     view_map:
       v1: C10095_rgb.mp4

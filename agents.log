@@ -10,3 +10,8 @@
   原因：用户要求阻碍时先沟通再决策，未经同意不得自行改道
   涉及文件：AGENTS.md, agents.log
   后续：长期有效。当前阻塞项：等待用户提供 HuggingFace read token（Assembly101 gated 数据集授权），拿到后即按 docs/02 原定路径执行，无需切路
+
+[2026-10-25 12:40] 偏差：手部模型标签来源由「Assembly101 官方标注（3D→2D 投影，docs/02 原路线）」改为「模型预标注蒸馏（MediaPipe 教师模型）+ 人工修正二次训练对比」（路线 D）
+  原因：poses@60fps 为 3D 手心坐标系关键点，投影所需相机外参仅存在于 72GB 的 AssemblyPoses.zip 内，公开渠道不可得；已按 AGENTS.md §3 先询问，用户批准切换（并追加要求：7/2/1 三分、数据不足继续取段、人工修正后二次训练对比）
+  涉及文件：docs/01-项目文档(§3 决策#16, §5.1), docs/02-数据集方案(重构), config/dataset.yaml, tools/prelabel_hands.py(新增), tools/compare_models.py(新增), tools/download_subset.py, tools/README.md
+  后续：v1 伪标签模型训练完成后，由用户用 X-AnyLabeling/CVAT 人工修正标注，二次训练 v2 并在同一测试集上对比；官方口径标签（路线 A）如将来需要再评估

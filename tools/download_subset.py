@@ -148,12 +148,14 @@ def fetch_assembly101(cfg, cap, dry, ctx):
     s = cfg["sources"]["assembly101"]
     token = load_token(s)
     items = []
+    if s.get("with_poses", True):
+        for take in s["takes"]:
+            items.append({
+                "url": f"{s['resolve']}/poses%4060fps/{take}.json",
+                "dest": f"datasets/raw/assembly101/poses@60fps/{take}.json",
+                "token": token,
+            })
     for take in s["takes"]:
-        items.append({
-            "url": f"{s['resolve']}/poses%4060fps/{take}.json",
-            "dest": f"datasets/raw/assembly101/poses@60fps/{take}.json",
-            "token": token,
-        })
         for v in s["views"]:
             fn = s["view_map"][v]
             items.append({
