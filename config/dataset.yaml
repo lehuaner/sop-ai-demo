@@ -2,7 +2,7 @@
 # active_source 切换数据源：M1 流程验证用 coco_val2017；M2 手部模型切 assembly101
 # （assembly101 为 gated 数据集，需 export HF_TOKEN=<在 HF 网站点击授权后的读 token>）
 
-active_source: coco_val2017
+active_source: assembly101
 
 max_download_gb: 5
 train_ratio: 0.8
@@ -26,11 +26,12 @@ sources:
 
   assembly101:
     kind: assembly101_poses
-    api: https://hf-mirror.com/api/datasets/cvml-nus/assembly101/tree/main
-    resolve: https://hf-mirror.com/datasets/cvml-nus/assembly101/resolve/main
+    api: https://huggingface.co/api/datasets/cvml-nus/assembly101/tree/main
+    resolve: https://huggingface.co/datasets/cvml-nus/assembly101/resolve/main
     token_env: HF_TOKEN
     takes:
-      - nusar-2021_action_both_9011-a01_9011_user_id_2021-02-01_153724
+      - nusar-2021_action_both_9031-c10b_9031_user_id_2021-02-04_101221   # 0.18GB，体量最小
+      - nusar-2021_action_both_9084-b04c_9084_user_id_2021-02-25_143221   # 0.19GB
     views: [v1]                  # v1 = C10095_rgb.mp4（第三人称固定视角）
     view_map:
       v1: C10095_rgb.mp4

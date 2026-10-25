@@ -132,9 +132,21 @@ def fetch_coco(cfg, cap, dry, ctx):
     return True
 
 
+def load_token(s):
+    """HF token: env var first, then .venv/hf_token.txt (gitignored, never committed)."""
+    tok = os.environ.get(s.get("token_env", "HF_TOKEN"), "")
+    if tok:
+        return tok
+    p = os.path.join(ROOT, ".venv", "hf_token.txt")
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            return f.read().strip()
+    return ""
+
+
 def fetch_assembly101(cfg, cap, dry, ctx):
     s = cfg["sources"]["assembly101"]
-    token = os.environ.get(s.get("token_env", "HF_TOKEN"), "")
+    token = load_token(s)
     items = []
     for take in s["takes"]:
         items.append({

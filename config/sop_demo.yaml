@@ -34,5 +34,6 @@ alarm:
   out_of_order: warn
 
 roi:
-  work_area:  { x1: 0.30, y1: 0.30, x2: 0.70, y2: 0.85 }
-  object_tray: { x1: 0.05, y1: 0.45, x2: 0.25, y2: 0.95 }
+  # ROI 标定自真实场景（nusar-9031-c10b / C10095 视角）腕部关键点分布 p10-p90，见 runs/20261025-120340-run
+  work_area:   { x1: 0.30, y1: 0.05, x2: 0.55, y2: 0.38 }
+  object_tray: { x1: 0.55, y1: 0.05, x2: 0.80, y2: 0.38 }
