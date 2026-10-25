@@ -23,7 +23,10 @@ DEFAULT_SOP = os.path.join(ROOT, "config/sop_demo.yaml")
 
 
 def find_weight(name):
-    """Newest trained weight across runs/ (runs/<name>/weights/best.pt)."""
+    """Trained weight preference: weights/<name> (survives rotation) then runs/."""
+    p = os.path.join(ROOT, "weights", name)
+    if os.path.exists(p):
+        return p
     cands = sorted(glob.glob(os.path.join(ROOT, "runs", "*", "weights", name)))
     return cands[-1] if cands else None
 
@@ -56,6 +59,10 @@ def cmd_train(args):
                         if k.endswith(key):
                             ctx.note(f"{key} = {float(v):.4f}")
         ctx.note("训练完成，best 权重: runs/" + ctx.name + "/weights/best.pt")
+        best_src = os.path.join(ROOT, "runs", ctx.name, "weights", "best.pt")
+        if os.path.exists(best_src):
+            shutil.copy2(best_src, os.path.join(ROOT, "weights", "best.pt"))
+            ctx.note("已复制部署权重到 weights/best.pt（轮转归档不影响 run 模式取用）")
         ctx.note("结果曲线 results.png | 逐轮指标 results.csv（大屏 /api/train_metrics 可读）")
         ctx.finish(ok=True, extra_manifest={"final_metrics": last})
     except Exception as e:
@@ -105,7 +112,9 @@ def cmd_run(args):
                 i = int(res.boxes.conf.argmax())
                 kpts_px = res.keypoints.xy[i].cpu().numpy().astype(float)
                 n_person = max(n_person, len(res.keypoints))
-            events = engine.update(kpts_px, fid)
+            # SOP ROIs are normalized (0-1) -> feed normalized keypoints
+            kpts_norm = kpts_px / np.array([w, h], dtype=float) if kpts_px is not None else None
+            events = engine.update(kpts_norm, fid)
             for e in events:
                 ev.write(json.dumps(e, ensure_ascii=False) + "\n")
                 n_ev += 1
