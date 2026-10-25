@@ -26,6 +26,7 @@ class SOPEngine:
         self.stable = 0         # consecutive frames the current rule held
         self.t_step_start = time.time()
         self.last_alarm_frame = -10**9
+        self._ooo_emitted = False   # rising-edge flag: emit out_of_order once per intrusion
 
     # ---- rules -------------------------------------------------------
     @staticmethod
@@ -62,6 +63,7 @@ class SOPEngine:
                                 "name": step["name"], "frame": frame_idx, "ts": time.time()})
                     self.current += 1
                     self.stable = 0
+                    self._ooo_emitted = False
                     self.t_step_start = time.time()
                     self.last_alarm_frame = frame_idx
             else:
@@ -73,15 +75,19 @@ class SOPEngine:
                                 "message": f"step {step['id']} '{step['name']}' not done in {timeout}s"})
                     self.t_step_start = time.time()
                     self.last_alarm_frame = frame_idx
-            # out-of-order probe: next step's rule firing early
+            # out-of-order probe: next step's rule firing early (rising-edge only)
             nxt = self.current + 1
-            if (nxt < len(self.steps)
-                    and self.alarm_cfg.get("out_of_order") == "warn"
-                    and self._rule_ok(self.steps[nxt].get("expect"), kpts_px)):
-                evs.append({"type": "out_of_order", "step": self.steps[nxt]["id"],
-                            "name": self.steps[nxt]["name"], "frame": frame_idx, "ts": time.time(),
-                            "message": f"step {self.steps[nxt]['id']} active before {step['id']} done"})
-                self.last_alarm_frame = frame_idx
+            if nxt < len(self.steps) and self.alarm_cfg.get("out_of_order") == "warn":
+                later = self.steps[nxt]
+                if self._rule_ok(later.get("expect"), kpts_px):
+                    if not self._ooo_emitted:
+                        evs.append({"type": "out_of_order", "step": later["id"],
+                                    "name": later["name"], "frame": frame_idx, "ts": time.time(),
+                                    "message": f"step {later['id']} active before {self.steps[self.current]['id']} done"})
+                        self.last_alarm_frame = frame_idx
+                    self._ooo_emitted = True
+                else:
+                    self._ooo_emitted = False
         return evs
 
     # ---- overlay -----------------------------------------------------

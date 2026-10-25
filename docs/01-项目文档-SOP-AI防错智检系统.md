@@ -124,15 +124,16 @@ roi:
 
 ## 6. 运行自动归档规范（每次运行强制）
 
-**每一次 train / run / convert 执行，结束后自动在 `runs/YYYYMMDD-HHMMSS-<task>/` 写入：**
+**每一次 train / run / convert / check / download / extract 执行，结束后自动在 `runs/YYYYMMDD-HHMMSS-<task>/` 写入：**
 
 | 文件 | 内容（人能看懂） |
 |---|---|
 | `README.md` | 本次运行摘要：何时、什么任务、输入数据、完整命令、关键结果结论（自动生成，中文） |
 | `manifest.json` | 机器可读的参数与输入/输出清单 |
 | `log.txt` | 全量控制台输出 |
-| `metrics.csv` | 逐轮/逐秒指标（loss、mAP、fps 等） |
-| `samples/` | 关键可视化：标注抽查帧、推理叠加帧、报警事件截图 |
+| `results.csv` | 训练任务：逐轮指标（loss、mAP，ultralytics 原生格式，大屏 `/api/train_metrics` 读取） |
+| `events.jsonl` | 回放任务：检测统计与 SOP 事件流（step_done / step_timeout / out_of_order，大屏 events 面板读取） |
+| `samples/` | 关键可视化：标注抽查帧、推理叠加帧（annotated.mp4）、报警事件截图 |
 
 **自动归档规则**：`tools/archive_runs.py` 将过时运行（保留最近 5 次成功运行，其余）与被替换的转换数据移入 `archive/<类别>/`，并自动执行 `git commit -m "archive: ..."`（提交仅含 `archive/ARCHIVE_LOG.md` 清单行）。归档动作 = 一次 git 提交。
 
