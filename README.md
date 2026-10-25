@@ -17,5 +17,7 @@ SOP-AI 行为防错智检系统 · 本地训推一体 Demo（一期）。对标 
 | `archive/` | 过时产物归档（ARCHIVE_LOG.md 为唯一入库留痕） |
 | `docs/` | 全部文档 |
 | `web/` | Vue 3 前端（M2 落地） |
+| `weights/` | 预训练与部署权重（`best.pt` 等，不入 git） |
+| `AGENTS.md` / `agents.log` | 代理协作须知与执行偏差记录 |
 
 License: MIT（代码）；数据集遵循各自许可（Assembly101 为 CC BY-NC 4.0，仅限非商用研究演示）。

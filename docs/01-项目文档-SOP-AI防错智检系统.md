@@ -82,7 +82,7 @@
 
 | 层 | 方案 |
 |---|---|
-| 关键点检测 | `yolo11n-pose.pt`（COCO 预训练，17 人体关键点）微调；手部姿态子任务视所选数据集可换 21 手部关键点模型（见 02 §3） |
+| 关键点检测 | `yolo11n-pose.pt`（COCO 预训练，17 人体关键点）微调；手部模型为**双手 42 关键点**（或每手 21 关键点实例，待真实 JSON 结构确认后固定，见 02 §3） |
 | 动作判定 | **规则引擎**（非深度模型）：关键点与 ROI/工件区域的相对位置、双手距离、手部运动轨迹 + 连续 N 帧时序平滑 |
 | SOP 校验（一期展示级） | 每个步骤绑定一条关键点规则；步骤超时/回退产生告警事件。完整顺序状态机属二期 |
 | 部署 | 训练产物 `best.pt` 直接本机推理；可选导出 ONNX |
@@ -124,7 +124,7 @@ roi:
 
 ## 6. 运行自动归档规范（每次运行强制）
 
-**每一次 train / run / convert / check / download / extract 执行，结束后自动在 `runs/YYYYMMDD-HHMMSS-<task>/` 写入：**
+**每一次 train / run / convert / check / download / extract / demo_video 执行，结束后自动在 `runs/YYYYMMDD-HHMMSS-<task>/` 写入：**
 
 | 文件 | 内容（人能看懂） |
 |---|---|
@@ -135,7 +135,7 @@ roi:
 | `events.jsonl` | 回放任务：检测统计与 SOP 事件流（step_done / step_timeout / out_of_order，大屏 events 面板读取） |
 | `samples/` | 关键可视化：标注抽查帧、推理叠加帧（annotated.mp4）、报警事件截图 |
 
-**自动归档规则**：`tools/archive_runs.py` 将过时运行（保留最近 5 次成功运行，其余）与被替换的转换数据移入 `archive/<类别>/`，并自动执行 `git commit -m "archive: ..."`（提交仅含 `archive/ARCHIVE_LOG.md` 清单行）。归档动作 = 一次 git 提交。
+**自动归档规则**：`tools/archive_runs.py` 按任务类型轮转（train / run / check / convert / download / extract / demo_video 各自保留最近 5 次），过时运行移入 `archive/runs/`，并自动执行 `git commit -m "archive: ..."`（提交仅含 `archive/ARCHIVE_LOG.md` 清单行）。归档动作 = 一次 git 提交。训练结束时会同时复制 `best.pt` 到 `weights/best.pt`（部署权重，不受轮转影响，run 模式优先取用）。
 
 ## 7. 环境与依赖（项目内隔离）
 
